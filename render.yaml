@@ -8,3 +8,9 @@ services:
     envVars:
       - key: PORT
         value: 8501
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: SILICONFLOW_API_KEY
+        sync: false
+      - key: P_API_KEY
+        sync: false
