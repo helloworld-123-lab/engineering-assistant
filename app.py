@@ -54,6 +54,16 @@ def download_and_extract_database():
     
     return True
 
+# API密钥获取函数
+def get_api_keys():
+    """安全地获取API密钥"""
+    # 优先从环境变量获取
+    deepseek_key = os.environ.get("DEEPSEEK_API_KEY", "")
+    siliconflow_key = os.environ.get("SILICONFLOW_API_KEY", "")
+    p_key = os.environ.get("P_API_KEY", "")
+    
+    return deepseek_key, siliconflow_key,p_key
+
 # 通过硅基流动API获取嵌入向量
 def get_embeddings(texts: List[str], api_key: str) -> List[List[float]]:
     """
@@ -339,7 +349,7 @@ def generate_mermaid_image(mermaid_code: str) -> Image.Image:
         return None
 
 # 生成图片 - 支持多种模型
-def generate_image(prompt: str, model_type: str, api_key: str = None) -> Image.Image:
+def generate_image(prompt: str, model_type: str, api_key: str = None, api_key1: str = None) -> Image.Image:
     """
     根据选择的模型生成图片
     model_type: 模型类型，包括 'kolors', 'flux', 'kontext', 'turbo', 'gptimage'
@@ -387,10 +397,9 @@ def generate_image(prompt: str, model_type: str, api_key: str = None) -> Image.I
             # 对prompt进行URL编码
             import urllib.parse
             encoded_prompt = urllib.parse.quote(prompt)
-            P_API_KEY="__U07xnySeZ9pMgB"
             # 构建pollinations.ai的URL
             url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&model={model_type}"
-            headers = {"Authorization": f"Bearer {P_API_KEY}"}
+            headers = {"Authorization": f"Bearer {api_key1}"}
             # 下载图片
             image_response = requests.get(url, headers=headers)
             if image_response.status_code == 200:
@@ -475,8 +484,7 @@ def main():
         st.session_state.latest_mindmap = None
     
     # 默认密钥
-    DEFAULT_DEEPSEEK_API_KEY = "sk-2bc924ff87a745fcad71bb27400675b7"
-    DEFAULT_SILICONFLOW_API_KEY = "sk-lrivcqginfwehuxafrycgrnnwvzvwagdyrzharojvnuuxknk"
+    DEFAULT_DEEPSEEK_API_KEY, DEFAULT_SILICONFLOW_API_KEY, P_API_KEY= get_api_keys()
     
     # 初始化资源
     try:
@@ -780,7 +788,7 @@ def main():
                             image_prompt = generate_image_prompt(latest_response, "简洁明了的技术示意图", deepseek_api_key)
                             if not image_prompt.startswith("生成提示词时出错"):
                                 # 根据选择的模型生成图片
-                                image_data = generate_image(image_prompt, selected_image_model, siliconflow_api_key)
+                                image_data = generate_image(image_prompt, selected_image_model, siliconflow_api_key, P_API_KEY)
                                 if image_data:
                                     # 保存到当前消息
                                     if str(last_assistant_idx) not in st.session_state.generated_images:
