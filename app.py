@@ -15,10 +15,44 @@ import numpy as np
 import langid
 from langcodes import Language
 import cairosvg
+import os
+import zipfile
+import urllib.request
 
 # https://protobuf.dev/news/v30/#remove-deprecated
 if not hasattr(_mf.MessageFactory, "GetPrototype"):
     _mf.MessageFactory.GetPrototype = staticmethod(_mf.GetMessageClass)
+
+# 数据库下载和解压函数
+def download_and_extract_database():
+    """在Render环境中下载并解压数据库文件"""
+    db_path = "chroma_db"
+    zip_url = "你的数据库文件下载URL"  # 需要替换为实际的文件下载链接
+    
+    if not os.path.exists(db_path):
+        st.info("正在下载数据库文件，这可能需要几分钟...")
+        
+        # 这里你需要将数据库文件上传到一个可公开访问的位置
+        # 比如GitHub Releases、云存储等
+        zip_filename = "chroma_db.zip"
+        
+        try:
+            # 下载文件
+            urllib.request.urlretrieve(zip_url, zip_filename)
+            
+            # 解压文件
+            with zipfile.ZipFile(zip_filename, 'r') as zip_ref:
+                zip_ref.extractall(".")
+            
+            # 清理临时文件
+            os.remove(zip_filename)
+            st.success("数据库文件下载完成！")
+            
+        except Exception as e:
+            st.error(f"数据库文件下载失败: {str(e)}")
+            return False
+    
+    return True
 
 # 通过硅基流动API获取嵌入向量
 def get_embeddings(texts: List[str], api_key: str) -> List[List[float]]:
@@ -50,12 +84,22 @@ def get_embeddings(texts: List[str], api_key: str) -> List[List[float]]:
         # 返回随机向量作为降级方案
         return [np.random.randn(1024).tolist() for _ in texts]
 
-# 初始化ChromaDB客户端
+# 初始化ChromaDB客户端 - 适配Render环境
 @st.cache_resource
 def get_chroma_collection():
-    client = chromadb.PersistentClient(path="chroma_db")
-    collection = client.get_collection("my_collection")
-    return collection
+    """在Render环境中初始化数据库连接"""
+    # 确保数据库文件存在
+    if not download_and_extract_database():
+        st.error("数据库初始化失败，请检查数据库文件")
+        return None
+    
+    try:
+        client = chromadb.PersistentClient(path="chroma_db")
+        collection = client.get_collection("my_collection")
+        return collection
+    except Exception as e:
+        st.error(f"数据库连接失败: {str(e)}")
+        return None
 
 # 获取层级选项 - 修复哈希问题
 @st.cache_data
@@ -437,6 +481,9 @@ def main():
     # 初始化资源
     try:
         collection = get_chroma_collection()
+        if collection is None:
+            st.error("数据库初始化失败，请检查数据库文件配置")
+            return
         level_options = get_level_options(collection)
     except Exception as e:
         st.error(f"初始化失败: {e}")
