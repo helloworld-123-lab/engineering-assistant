@@ -24,31 +24,32 @@ if not hasattr(_mf.MessageFactory, "GetPrototype"):
 
 # 数据库下载和解压函数
 def download_and_extract_database():
-    """在Render环境中下载并解压数据库文件"""
     db_path = "chroma_db"
     zip_url = "https://raw.githubusercontent.com/helloworld-123-lab/engineering-assistant/main/chroma_db.7z"
     
-    if not os.path.exists(db_path):
-        # 注释掉这两行，或者改为 print
-        # st.info("正在下载数据库文件，这可能需要几分钟...")
-        print("正在下载数据库文件，这可能需要几分钟...")
-        
+    # 如果数据库已经存在，直接返回，不显示任何消息
+    if os.path.exists(db_path):
+        return True
+    
+    # 只在需要下载时显示消息
+    with st.spinner("正在下载数据库文件，这可能需要几分钟..."):
         try:
+            # 下载文件
             urllib.request.urlretrieve(zip_url, "chroma_db.7z")
             
+            # 解压文件
             with py7zr.SevenZipFile("chroma_db.7z", mode='r') as z:
                 z.extractall(path=".")
             
+            # 清理临时文件
             os.remove("chroma_db.7z")
-            # st.success("数据库文件下载完成！")
-            print("数据库文件下载完成！")
+            
+            # 这里不显示成功消息，因为spinner会自动消失
             return True
             
         except Exception as e:
             st.error(f"数据库文件下载失败: {str(e)}")
             return False
-    
-    return True
 
 # API密钥获取函数
 def get_api_keys():
