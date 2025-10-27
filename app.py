@@ -32,7 +32,7 @@ def download_and_extract_database():
         return True
     
     # 只在需要下载时显示消息
-    with st.spinner("正在下载数据库文件，这可能需要几分钟..."):
+    with st.spinner("\n正在下载数据库文件，这可能需要几分钟..."):
         try:
             # 下载文件
             urllib.request.urlretrieve(zip_url, "chroma_db.7z")
@@ -94,7 +94,6 @@ def get_embeddings(texts: List[str], api_key: str) -> List[List[float]]:
 # 初始化ChromaDB客户端 - 适配Render环境
 @st.cache_resource
 def get_chroma_collection():
-    """在Render环境中初始化数据库连接"""
     # 确保数据库文件存在
     if not download_and_extract_database():
         st.error("数据库初始化失败，请检查数据库文件")
