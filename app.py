@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import langid
 from langcodes import Language
-import cairosvg
 import os
 import urllib.request
 import py7zr
