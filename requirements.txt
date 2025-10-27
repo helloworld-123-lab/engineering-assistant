@@ -6,5 +6,5 @@ langid==1.1.6
 langcodes==3.5.0
 Pillow
 matplotlib
-numpy==1.24.3
+numpy
 cairosvg==2.8.2
