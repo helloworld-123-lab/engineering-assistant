@@ -8,3 +8,4 @@ Pillow
 matplotlib
 numpy
 cairosvg==2.8.2
+py7zr
