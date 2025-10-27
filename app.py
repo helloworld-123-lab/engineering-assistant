@@ -26,26 +26,23 @@ if not hasattr(_mf.MessageFactory, "GetPrototype"):
 def download_and_extract_database():
     """在Render环境中下载并解压数据库文件"""
     db_path = "chroma_db"
-    zip_url = "https://raw.githubusercontent.com/helloworld-123-lab/engineering-assistant/main/chroma_db.7z"  # 需要替换为实际的文件下载链接
+    zip_url = "https://raw.githubusercontent.com/helloworld-123-lab/engineering-assistant/main/chroma_db.7z"
     
     if not os.path.exists(db_path):
-        st.info("正在下载数据库文件，这可能需要几分钟...")
-        
-        # 这里你需要将数据库文件上传到一个可公开访问的位置
-        # 比如GitHub Releases、云存储等
-        zip_filename = "chroma_db.zip"
+        # 注释掉这两行，或者改为 print
+        # st.info("正在下载数据库文件，这可能需要几分钟...")
+        print("正在下载数据库文件，这可能需要几分钟...")
         
         try:
-            # 下载文件
-            urllib.request.urlretrieve(zip_url, zip_filename)
+            urllib.request.urlretrieve(zip_url, "chroma_db.7z")
             
-            # 使用 py7zr 解压
-            with py7zr.SevenZipFile(zip_filename, mode='r') as z:
+            with py7zr.SevenZipFile("chroma_db.7z", mode='r') as z:
                 z.extractall(path=".")
             
-            # 清理临时文件
-            os.remove(zip_filename)
-            st.success("数据库文件下载完成！")
+            os.remove("chroma_db.7z")
+            # st.success("数据库文件下载完成！")
+            print("数据库文件下载完成！")
+            return True
             
         except Exception as e:
             st.error(f"数据库文件下载失败: {str(e)}")
