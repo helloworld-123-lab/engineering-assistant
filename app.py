@@ -757,7 +757,7 @@ def main():
                 st.session_state.generating_image_type is not None
             )
             
-            if st.button("🎨 生成示意图", disabled=not st.session_state.messages):
+            if st.button("🎨 生成示意图", disabled=not st.session_state.messages, use_container_width=True):
                 assistant_indices = [i for i, m in enumerate(st.session_state.messages) if m["role"] == "assistant"]
                 if assistant_indices:
                     st.session_state.generating_image_type = "illustration"
@@ -772,7 +772,7 @@ def main():
                 st.session_state.generating_image_type is not None
             )
             
-            if st.button("📊 生成思维导图", disabled=not st.session_state.messages):
+            if st.button("📊 生成思维导图", disabled=not st.session_state.messages,, use_container_width=True):
                 assistant_indices = [i for i, m in enumerate(st.session_state.messages) if m["role"] == "assistant"]
                 if assistant_indices:
                     st.session_state.generating_image_type = "mindmap"
@@ -789,7 +789,7 @@ def main():
                 try:
                     if st.session_state.generating_image_type == "illustration":
                         # 生成示意图
-                        image_prompt = generate_image_prompt(latest_response, "简洁明了的技术示意图", deepseek_api_key)
+                        image_prompt = generate_image_prompt(response_text, "简洁明了的技术示意图", deepseek_api_key)
                         if not image_prompt.startswith("生成提示词时出错"):
                             # 根据选择的模型生成图片
                             image_data = generate_image(image_prompt, selected_image_model, siliconflow_api_key, P_API_KEY)
@@ -817,7 +817,7 @@ def main():
                                 
                     elif st.session_state.generating_image_type == "mindmap":
                         # 生成思维导图
-                        mermaid_code = generate_mermaid_code(latest_response, deepseek_api_key)
+                        mermaid_code = generate_mermaid_code(response_text, deepseek_api_key)
                         if not mermaid_code.startswith("生成提示词时出错"):
                             image_data = generate_mermaid_image(mermaid_code)
                             if image_data:
