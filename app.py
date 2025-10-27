@@ -478,6 +478,9 @@ def main():
         st.session_state.latest_illustration = None
     if 'latest_mindmap' not in st.session_state:
         st.session_state.latest_mindmap = None
+    if 'target_assistant_idx' not in st.session_state:    
+        st.session_state.target_assistant_idx = None
+        
     
     # 默认密钥
     DEFAULT_DEEPSEEK_API_KEY, DEFAULT_SILICONFLOW_API_KEY, P_API_KEY= get_api_keys()
@@ -575,6 +578,7 @@ def main():
             st.session_state.generating_image_type = None
             st.session_state.latest_illustration = None
             st.session_state.latest_mindmap = None
+            st.session_state.target_assistant_idx = None
             st.rerun()
         
         # 显示数据库信息
@@ -780,62 +784,62 @@ def main():
         idx = st.session_state.target_assistant_idx
         response_text = st.session_state.messages[idx]["content"]
                 
-            if idx is not None:
-                with st.spinner("正在生成图片，请稍候..."):
-                    try:
-                        if st.session_state.generating_image_type == "illustration":
-                            # 生成示意图
-                            image_prompt = generate_image_prompt(latest_response, "简洁明了的技术示意图", deepseek_api_key)
-                            if not image_prompt.startswith("生成提示词时出错"):
-                                # 根据选择的模型生成图片
-                                image_data = generate_image(image_prompt, selected_image_model, siliconflow_api_key, P_API_KEY)
-                                if image_data:
-                                    # 保存到当前消息
-                                    st.session_state.generated_images.setdefault(str(idx), {})
-                                    # 保存图片数据和模型信息
-                                    model_display_name = {
-                                        "kolors": "Kolors (硅基流动)",
-                                        "flux": "Flux (Pollinations)",
-                                        "kontext": "Kontext (Pollinations)",
-                                        "turbo": "Turbo (Pollinations)", 
-                                        "gptimage": "GPTImage (Pollinations)"
-                                    }
-                                    model_info = model_display_name.get(selected_image_model, selected_image_model)
+        if idx is not None:
+            with st.spinner("正在生成图片，请稍候..."):
+                try:
+                    if st.session_state.generating_image_type == "illustration":
+                        # 生成示意图
+                        image_prompt = generate_image_prompt(latest_response, "简洁明了的技术示意图", deepseek_api_key)
+                        if not image_prompt.startswith("生成提示词时出错"):
+                            # 根据选择的模型生成图片
+                            image_data = generate_image(image_prompt, selected_image_model, siliconflow_api_key, P_API_KEY)
+                            if image_data:
+                                # 保存到当前消息
+                                st.session_state.generated_images.setdefault(str(idx), {})
+                                # 保存图片数据和模型信息
+                                model_display_name = {
+                                    "kolors": "Kolors (硅基流动)",
+                                    "flux": "Flux (Pollinations)",
+                                    "kontext": "Kontext (Pollinations)",
+                                    "turbo": "Turbo (Pollinations)", 
+                                    "gptimage": "GPTImage (Pollinations)"
+                                }
+                                model_info = model_display_name.get(selected_image_model, selected_image_model)
+                                
+                                st.session_state.generated_images[str(idx)]["illustration"] = (image_data, image_prompt, model_info)
+                                
+                                # 更新最新示意图
+                                st.session_state.latest_illustration = (image_data, image_prompt, model_info)
+                                
+                                # 添加到历史记录
+                                st.session_state.image_history.append((image_data, image_prompt, "illustration", model_info))
+                                st.success(f"示意图生成成功！使用模型: {model_info}")
+                                
+                    elif st.session_state.generating_image_type == "mindmap":
+                        # 生成思维导图
+                        mermaid_code = generate_mermaid_code(latest_response, deepseek_api_key)
+                        if not mermaid_code.startswith("生成提示词时出错"):
+                            image_data = generate_mermaid_image(mermaid_code)
+                            if image_data:
+                                st.session_state.generated_images.setdefault(str(idx), {})
+                                st.session_state.generated_images[str(idx)]["mindmap"] = (image_data, mermaid_code)
+                                # 更新最新思维导图
+                                st.session_state.latest_mindmap = (image_data, mermaid_code)
                                     
-                                    st.session_state.generated_images[str(idx)]["illustration"] = (image_data, image_prompt, model_info)
-                                    
-                                    # 更新最新示意图
-                                    st.session_state.latest_illustration = (image_data, image_prompt, model_info)
-                                    
-                                    # 添加到历史记录
-                                    st.session_state.image_history.append((image_data, image_prompt, "illustration", model_info))
-                                    st.success(f"示意图生成成功！使用模型: {model_info}")
-                                    
-                        elif st.session_state.generating_image_type == "mindmap":
-                            # 生成思维导图
-                            mermaid_code = generate_mermaid_code(latest_response, deepseek_api_key)
-                            if not mermaid_code.startswith("生成提示词时出错"):
-                                image_data = generate_mermaid_image(mermaid_code)
-                                if image_data:
-                                    st.session_state.generated_images.setdefault(str(idx), {})
-                                    st.session_state.generated_images[str(idx)]["mindmap"] = (image_data, mermaid_code)
-                                    # 更新最新思维导图
-                                    st.session_state.latest_mindmap = (image_data, mermaid_code)
-                                        
-                                    # 添加到历史记录
-                                    st.session_state.image_history.append((image_data, mermaid_code, "mindmap"))
-                                    st.success("思维导图生成成功！")
-                                else:
-                                    st.error("思维导图生成失败，请检查Mermaid代码或重试")
+                                # 添加到历史记录
+                                st.session_state.image_history.append((image_data, mermaid_code, "mindmap"))
+                                st.success("思维导图生成成功！")
                             else:
-                                st.error(f"生成思维导图代码失败: {mermaid_code}")
-                    
-                    except Exception as e:
-                        st.error(f"图片生成失败: {str(e)}")
-                    
-                    finally:
-                        st.session_state.generating_image_type = None
-                        st.rerun()
+                                st.error("思维导图生成失败，请检查Mermaid代码或重试")
+                        else:
+                            st.error(f"生成思维导图代码失败: {mermaid_code}")
+                
+                except Exception as e:
+                    st.error(f"图片生成失败: {str(e)}")
+                
+                finally:
+                    st.session_state.generating_image_type = None
+                    st.rerun()
 
     # 处理消息生成
     if st.session_state.is_generating and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
