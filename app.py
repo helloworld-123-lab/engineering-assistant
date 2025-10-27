@@ -772,7 +772,7 @@ def main():
                 st.session_state.generating_image_type is not None
             )
             
-            if st.button("📊 生成思维导图", disabled=not st.session_state.messages,, use_container_width=True):
+            if st.button("📊 生成思维导图", disabled=not st.session_state.messages, use_container_width=True):
                 assistant_indices = [i for i, m in enumerate(st.session_state.messages) if m["role"] == "assistant"]
                 if assistant_indices:
                     st.session_state.generating_image_type = "mindmap"
