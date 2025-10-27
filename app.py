@@ -16,8 +16,8 @@ import langid
 from langcodes import Language
 import cairosvg
 import os
-import zipfile
 import urllib.request
+import subprocess
 
 # https://protobuf.dev/news/v30/#remove-deprecated
 if not hasattr(_mf.MessageFactory, "GetPrototype"):
@@ -40,9 +40,8 @@ def download_and_extract_database():
             # 下载文件
             urllib.request.urlretrieve(zip_url, zip_filename)
             
-            # 解压文件
-            with zipfile.ZipFile(zip_filename, 'r') as zip_ref:
-                zip_ref.extractall(".")
+            # 使用 7z 解压（Render 基础镜像支持）
+            subprocess.run(["7z", "x", zip_filename], check=True)
             
             # 清理临时文件
             os.remove(zip_filename)
