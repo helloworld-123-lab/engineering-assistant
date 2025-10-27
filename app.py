@@ -753,9 +753,11 @@ def main():
                 st.session_state.generating_image_type is not None
             )
             
-            if st.button("🎨 生成示意图", use_container_width=True, disabled=illustration_disabled):
-                if st.session_state.messages:
+            if st.button("🎨 生成示意图", disabled=not st.session_state.messages):
+                assistant_indices = [i for i, m in enumerate(st.session_state.messages) if m["role"] == "assistant"]
+                if assistant_indices:
                     st.session_state.generating_image_type = "illustration"
+                    st.session_state.target_assistant_idx = assistant_indices[-1]
                     st.rerun()
         
         with col_input3:
@@ -766,25 +768,19 @@ def main():
                 st.session_state.generating_image_type is not None
             )
             
-            if st.button("📊 生成思维导图", use_container_width=True, disabled=mindmap_disabled):
-                if st.session_state.messages:
+            if st.button("📊 生成思维导图", disabled=not st.session_state.messages):
+                assistant_indices = [i for i, m in enumerate(st.session_state.messages) if m["role"] == "assistant"]
+                if assistant_indices:
                     st.session_state.generating_image_type = "mindmap"
+                    st.session_state.target_assistant_idx = assistant_indices[-1]
                     st.rerun()
 
     # 处理图片生成
-    if st.session_state.generating_image_type and st.session_state.messages:
-        assistant_messages = [msg for msg in st.session_state.messages if msg["role"] == "assistant"]
-        if assistant_messages:
-            latest_response = assistant_messages[-1]["content"]
-            last_assistant_idx = None
-            
-            # 找到最新助手消息的索引
-            for i, msg in enumerate(st.session_state.messages):
-                if msg["role"] == "assistant" and msg["content"] == latest_response:
-                    last_assistant_idx = i
-                    break
-            
-            if last_assistant_idx is not None:
+    if st.session_state.generating_image_type and st.session_state.target_assistant_idx is not None:
+        idx = st.session_state.target_assistant_idx
+        response_text = st.session_state.messages[idx]["content"]
+                
+            if idx is not None:
                 with st.spinner("正在生成图片，请稍候..."):
                     try:
                         if st.session_state.generating_image_type == "illustration":
@@ -795,9 +791,7 @@ def main():
                                 image_data = generate_image(image_prompt, selected_image_model, siliconflow_api_key, P_API_KEY)
                                 if image_data:
                                     # 保存到当前消息
-                                    if str(last_assistant_idx) not in st.session_state.generated_images:
-                                        st.session_state.generated_images[str(last_assistant_idx)] = {}
-                                    
+                                    st.session_state.generated_images.setdefault(str(idx), {})
                                     # 保存图片数据和模型信息
                                     model_display_name = {
                                         "kolors": "Kolors (硅基流动)",
@@ -808,7 +802,7 @@ def main():
                                     }
                                     model_info = model_display_name.get(selected_image_model, selected_image_model)
                                     
-                                    st.session_state.generated_images[str(last_assistant_idx)]["illustration"] = (image_data, image_prompt, model_info)
+                                    st.session_state.generated_images[str(idx)]["illustration"] = (image_data, image_prompt, model_info)
                                     
                                     # 更新最新示意图
                                     st.session_state.latest_illustration = (image_data, image_prompt, model_info)
@@ -816,29 +810,25 @@ def main():
                                     # 添加到历史记录
                                     st.session_state.image_history.append((image_data, image_prompt, "illustration", model_info))
                                     st.success(f"示意图生成成功！使用模型: {model_info}")
-                        else:
+                                    
+                        elif st.session_state.generating_image_type == "mindmap":
                             # 生成思维导图
                             mermaid_code = generate_mermaid_code(latest_response, deepseek_api_key)
                             if not mermaid_code.startswith("生成提示词时出错"):
                                 image_data = generate_mermaid_image(mermaid_code)
                                 if image_data:
-                                    # 确保使用正确的索引保存
-                                    assistant_messages = [i for i, msg in enumerate(st.session_state.messages) if msg["role"] == "assistant"]
-                                    if assistant_messages:
-                                        last_assistant_idx = assistant_messages[-1]
+                                    st.session_state.generated_images.setdefault(str(idx), {})
+                                    st.session_state.generated_images[str(idx)]["mindmap"] = (image_data, mermaid_code)
+                                    # 更新最新思维导图
+                                    st.session_state.latest_mindmap = (image_data, mermaid_code)
                                         
-                                        # 保存到当前消息
-                                        if str(last_assistant_idx) not in st.session_state.generated_images:
-                                            st.session_state.generated_images[str(last_assistant_idx)] = {}
-                                        
-                                        st.session_state.generated_images[str(last_assistant_idx)]["mindmap"] = (image_data, mermaid_code)
-                                        
-                                        # 更新最新思维导图
-                                        st.session_state.latest_mindmap = (image_data, mermaid_code)
-                                        
-                                        # 添加到历史记录
-                                        st.session_state.image_history.append((image_data, mermaid_code, "mindmap"))
-                                        st.success("思维导图生成成功！")
+                                    # 添加到历史记录
+                                    st.session_state.image_history.append((image_data, mermaid_code, "mindmap"))
+                                    st.success("思维导图生成成功！")
+                                else:
+                                    st.error("思维导图生成失败，请检查Mermaid代码或重试")
+                            else:
+                                st.error(f"生成思维导图代码失败: {mermaid_code}")
                     
                     except Exception as e:
                         st.error(f"图片生成失败: {str(e)}")
