@@ -27,7 +27,7 @@ if not hasattr(_mf.MessageFactory, "GetPrototype"):
 def download_and_extract_database():
     """在Render环境中下载并解压数据库文件"""
     db_path = "chroma_db"
-    zip_url = "你的数据库文件下载URL"  # 需要替换为实际的文件下载链接
+    zip_url = "https://raw.githubusercontent.com/helloworld-123-lab/engineering-assistant/main/chroma_db.7z"  # 需要替换为实际的文件下载链接
     
     if not os.path.exists(db_path):
         st.info("正在下载数据库文件，这可能需要几分钟...")
