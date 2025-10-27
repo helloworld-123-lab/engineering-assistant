@@ -17,7 +17,7 @@ from langcodes import Language
 import cairosvg
 import os
 import urllib.request
-import subprocess
+import py7zr
 
 # https://protobuf.dev/news/v30/#remove-deprecated
 if not hasattr(_mf.MessageFactory, "GetPrototype"):
