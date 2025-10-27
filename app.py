@@ -40,8 +40,9 @@ def download_and_extract_database():
             # 下载文件
             urllib.request.urlretrieve(zip_url, zip_filename)
             
-            # 使用 7z 解压（Render 基础镜像支持）
-            subprocess.run(["7z", "x", zip_filename], check=True)
+            # 使用 py7zr 解压
+            with py7zr.SevenZipFile(zip_filename, mode='r') as z:
+                z.extractall(path=".")
             
             # 清理临时文件
             os.remove(zip_filename)
