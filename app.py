@@ -658,7 +658,15 @@ def main():
                     
                     # 显示每个文档的相似度
                     for i, similarity in enumerate(similarities):
-                        st.progress(similarity, text=f"文档 {i+1}: {similarity:.3f}")
+                        # 确保相似度在 0.0 到 1.0 之间
+                        if similarity < 0.0:
+                            progress_value = 0.0
+                        elif similarity > 1.0:
+                            progress_value = 1.0
+                        else:
+                            progress_value = similarity
+                        
+                        st.progress(progress_value, text=f"文档 {i+1}: {similarity:.3f}")
 
         # 生成状态指示器
         if st.session_state.is_generating:
